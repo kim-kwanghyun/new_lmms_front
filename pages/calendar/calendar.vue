@@ -743,7 +743,8 @@ const fetchEvents = async () => {
     console.log('이벤트 목록 조회 시작:', currentYear.value, currentMonth.value)
     const response = await $fetch(`/api/v1/calendar/events?year=${currentYear.value}&month=${currentMonth.value}`) as any
     
-    console.log('이벤트 API 응답:', response)
+    alert("response: " + response)
+      console.log('이벤트 API 응답:', response)
     
     if (response && response.success) {
       events.value = response.data.events || []
