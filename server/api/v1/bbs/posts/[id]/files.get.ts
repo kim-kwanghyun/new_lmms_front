@@ -1,0 +1,71 @@
+import mysql from 'mysql2/promise'
+import { defineEventHandler, getRouterParam, createError } from 'h3'
+import { dbConfig } from '~/server/utils/dbConfig'
+
+export default defineEventHandler(async (event) => {
+  let connection: mysql.Connection | null = null
+  try {
+    const postId = getRouterParam(event, 'id')
+    console.log('게시글 파일 목록 조회 API 호출됨:', postId)
+
+    if (!postId) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Bad Request',
+        data: {
+          success: false,
+          message: 'post_id is required',
+          timestamp: new Date().toISOString()
+        }
+      })
+    }
+
+    connection = await mysql.createConnection(dbConfig)
+
+    // 첨부파일 목록 조회
+    const fileQuery = `
+      SELECT 
+        file_id,
+        post_id,
+        original_filename,
+        stored_filename,
+        file_path,
+        file_size,
+        file_type,
+        file_extension,
+        download_count,
+        DATE_FORMAT(crdt_dt, '%Y-%m-%d %H:%i:%s') as crdt_dt
+      FROM tbl_bbs_file
+      WHERE post_id = ? AND del_dt IS NULL
+      ORDER BY crdt_dt ASC
+    `
+    const [fileRows] = await connection.execute(fileQuery, [postId])
+
+    return {
+      success: true,
+      message: '파일 목록 조회 성공',
+      data: {
+        files: fileRows
+      },
+      timestamp: new Date().toISOString()
+    }
+
+  } catch (error) {
+    console.error('파일 목록 조회 API 오류:', error)
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Internal Server Error',
+      data: {
+        success: false,
+        message: '파일 목록 조회 실패',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      }
+    })
+  } finally {
+    if (connection) {
+      await connection.end()
+    }
+  }
+})
+

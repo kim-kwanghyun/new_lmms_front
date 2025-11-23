@@ -385,10 +385,73 @@ export const useApiClient = () => {
   const api = useApi()
   
   return {
-    get: (url: string, params?: any) => api.call(url, { query: params }),
-    post: (url: string, data?: any) => api.call(url, { method: 'POST', body: data }),
-    put: (url: string, data?: any) => api.call(url, { method: 'PUT', body: data }),
-    delete: (url: string) => api.call(url, { method: 'DELETE' })
+    get: (url: string, options?: any) => {
+      if (options?.params) {
+        return api.call(url, { query: options.params })
+      }
+      return api.call(url)
+    },
+    post: (url: string, data?: any, options?: any) => {
+      if (data instanceof FormData) {
+        // FormData인 경우 Content-Type 헤더를 설정하지 않음 (브라우저가 자동으로 boundary 포함)
+        const fetchOptions: any = {
+          method: 'POST',
+          body: data
+        }
+        
+        // options에서 Content-Type 헤더 제거
+        if (options?.headers) {
+          const headers = { ...options.headers }
+          delete headers['Content-Type']
+          delete headers['content-type']
+          if (Object.keys(headers).length > 0) {
+            fetchOptions.headers = headers
+          }
+        }
+        
+        return (globalThis as any).$fetch(url, fetchOptions).catch(async (error: any) => {
+          // $fetch 실패 시 네이티브 fetch 사용
+          const response = await fetch(url, fetchOptions)
+          if (!response.ok) {
+            const errorText = await response.text()
+            throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`)
+          }
+          return await response.json()
+        })
+      }
+      return api.call(url, { method: 'POST', body: data, ...options })
+    },
+    put: (url: string, data?: any, options?: any) => {
+      if (data instanceof FormData) {
+        // FormData인 경우 Content-Type 헤더를 설정하지 않음 (브라우저가 자동으로 boundary 포함)
+        const fetchOptions: any = {
+          method: 'PUT',
+          body: data
+        }
+        
+        // options에서 Content-Type 헤더 제거
+        if (options?.headers) {
+          const headers = { ...options.headers }
+          delete headers['Content-Type']
+          delete headers['content-type']
+          if (Object.keys(headers).length > 0) {
+            fetchOptions.headers = headers
+          }
+        }
+        
+        return (globalThis as any).$fetch(url, fetchOptions).catch(async (error: any) => {
+          // $fetch 실패 시 네이티브 fetch 사용
+          const response = await fetch(url, fetchOptions)
+          if (!response.ok) {
+            const errorText = await response.text()
+            throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`)
+          }
+          return await response.json()
+        })
+      }
+      return api.call(url, { method: 'PUT', body: data, ...options })
+    },
+    delete: (url: string, options?: any) => api.call(url, { method: 'DELETE', ...options })
   }
 }
 

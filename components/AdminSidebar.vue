@@ -54,6 +54,19 @@
           </li>
         </ul>
       </li><!-- End Calendar Nav -->
+      <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-toggle="collapse" data-bs-target="#bbs-nav" aria-expanded="false" aria-controls="bbs-nav" href="#">
+          <i class="bi bi-calendar3"></i><span>파일게시판</span><i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="bbs-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        
+          <li>
+            <NuxtLink to="/bbs/bbs" :class="{ active: isActive('/bbs/bbs') }">
+              <i class="bi bi-circle"></i><span>파일게시판</span>
+            </NuxtLink>
+          </li>
+        </ul>
+      </li><!-- End Calendar Nav -->
 
       <li class="nav-item">
         <a class="nav-link collapsed" data-bs-toggle="collapse" data-bs-target="#livestock-nav" aria-expanded="false" aria-controls="livestock-nav" href="#">
