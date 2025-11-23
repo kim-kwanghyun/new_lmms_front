@@ -7,104 +7,70 @@
 const fs = require('fs')
 const path = require('path')
 
-// 여러 가능한 경로 확인
-const possiblePaths = [
-  path.join(__dirname, 'node_modules', 'oxc-parser', 'bindings.js'),
-  path.join(__dirname, 'node_modules', 'oxc-parser', 'src-js', 'bindings.js'),
-]
+// __dirname 정의 (ES 모듈 환경 대응)
+const __dirname = typeof __dirname !== 'undefined' ? __dirname : process.cwd()
 
-let oxcParserPath = null
-for (const p of possiblePaths) {
-  if (fs.existsSync(p)) {
-    oxcParserPath = p
-    break
-  }
-}
+const stubJsPath = path.join(__dirname, 'oxc-parser-stub.js')
+const stubMjsPath = path.join(__dirname, 'oxc-parser-stub.mjs')
 
-if (oxcParserPath) {
+// oxc-parser 디렉토리 확인
+const oxcParserDir = path.join(__dirname, 'node_modules', 'oxc-parser')
+
+if (fs.existsSync(oxcParserDir)) {
   try {
-    let content = fs.readFileSync(oxcParserPath, 'utf8')
-    const backupPath = oxcParserPath + '.backup'
-    
-    // 백업 생성 (없는 경우만)
-    if (!fs.existsSync(backupPath)) {
-      fs.writeFileSync(backupPath, content, 'utf8')
-      console.log(`Created backup: ${backupPath}`)
+    // 1. index.js를 stub으로 교체
+    const indexPath = path.join(oxcParserDir, 'index.js')
+    if (fs.existsSync(stubJsPath)) {
+      fs.copyFileSync(stubJsPath, indexPath)
+      console.log('✓ oxc-parser/index.js replaced with stub')
     }
     
-    // 이미 패치되었는지 확인
-    if (content.includes('Patched to prevent native binding errors')) {
-      // 문법 검사
-      try {
-        require('vm').createScript(content).runInNewContext({ require, module: {}, exports: {} })
-        console.log('✓ oxc-parser bindings.js already patched and syntax OK')
-        process.exit(0)
-      } catch (e) {
-        console.log('⚠ Syntax error detected in patched file, restoring from backup...')
-        if (fs.existsSync(backupPath)) {
-          content = fs.readFileSync(backupPath, 'utf8')
-        } else {
-          console.log('⚠ No backup found, reinstalling required')
-          process.exit(1)
+    // 2. index.mjs도 stub으로 교체 (있는 경우)
+    const indexMjsPath = path.join(oxcParserDir, 'index.mjs')
+    if (fs.existsSync(stubMjsPath)) {
+      fs.copyFileSync(stubMjsPath, indexMjsPath)
+      console.log('✓ oxc-parser/index.mjs replaced with stub')
+    }
+    
+    // 3. bindings.js를 stub으로 교체
+    const bindingsPath = path.join(oxcParserDir, 'bindings.js')
+    if (fs.existsSync(bindingsPath) && fs.existsSync(stubJsPath)) {
+      fs.copyFileSync(stubJsPath, bindingsPath)
+      console.log('✓ oxc-parser/bindings.js replaced with stub')
+    }
+    
+    // 4. @oxc-parser 바인딩 패키지들도 stub으로 교체
+    const bindingPackages = [
+      '@oxc-parser/binding-linux-x64-gnu',
+      '@oxc-parser/binding-linux-x64-musl',
+      '@oxc-parser/binding-linux-arm64-gnu',
+      '@oxc-parser/binding-linux-arm64-musl'
+    ]
+    
+    for (const pkg of bindingPackages) {
+      const pkgDir = path.join(__dirname, 'node_modules', pkg)
+      if (fs.existsSync(pkgDir)) {
+        const pkgIndex = path.join(pkgDir, 'index.js')
+        if (fs.existsSync(stubJsPath)) {
+          fs.copyFileSync(stubJsPath, pkgIndex)
+          console.log(`✓ ${pkg}/index.js replaced with stub`)
+        }
+        
+        // index.mjs도 교체 (있는 경우)
+        const pkgIndexMjs = path.join(pkgDir, 'index.mjs')
+        if (fs.existsSync(stubMjsPath)) {
+          fs.copyFileSync(stubMjsPath, pkgIndexMjs)
+          console.log(`✓ ${pkg}/index.mjs replaced with stub`)
         }
       }
     }
     
-    console.log(`Patching ${oxcParserPath}...`)
-    
-    // 안전한 패치: 파일 시작 부분에만 Module.prototype.require 오버라이드 추가
-    // 기존 코드는 전혀 수정하지 않음
-    const patch = `// Patched to prevent native binding errors - DO NOT REMOVE
-(function() {
-  const Module = require('module');
-  const originalRequire = Module.prototype.require;
-  Module.prototype.require = function(id) {
-    if (id && typeof id === 'string' && (
-      id.includes('oxc-parser') || 
-      id.includes('binding-linux') || 
-      id.includes('binding-win') || 
-      id.includes('binding-darwin') ||
-      id.includes('parser.linux') ||
-      id.includes('parser.win') ||
-      id.includes('parser.darwin')
-    )) {
-      try {
-        return originalRequire.apply(this, arguments);
-      } catch (e) {
-        return {};
-      }
-    }
-    return originalRequire.apply(this, arguments);
-  };
-})();
-
-`
-    
-    // 패치를 파일 시작 부분에 추가 (기존 내용은 그대로 유지)
-    content = patch + content
-    
-    // 문법 검사
-    try {
-      require('vm').createScript(content).runInNewContext({ require, module: {}, exports: {} })
-    } catch (e) {
-      console.error('✗ Syntax error in patched content, restoring backup...')
-      if (fs.existsSync(backupPath)) {
-        content = fs.readFileSync(backupPath, 'utf8')
-        fs.writeFileSync(oxcParserPath, content, 'utf8')
-      }
-      throw new Error('Failed to create valid patch: ' + e.message)
-    }
-    
-    // 파일 저장
-    fs.writeFileSync(oxcParserPath, content, 'utf8')
-    console.log('✓ oxc-parser bindings.js patched successfully')
+    console.log('✓ oxc-parser patched successfully')
   } catch (error) {
     console.error('✗ Failed to patch oxc-parser:', error.message)
     console.error('Error stack:', error.stack)
-    // 패치 실패해도 계속 진행
-    process.exit(0)
+    process.exit(0) // 실패해도 계속 진행
   }
 } else {
   console.log('ℹ oxc-parser not found, skipping patch')
 }
-
