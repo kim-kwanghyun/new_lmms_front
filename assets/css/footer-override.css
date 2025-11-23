@@ -1,0 +1,164 @@
+/* 푸터 아이콘 제거를 위한 전역 CSS */
+
+/* 푸터 영역의 모든 아이콘 제거 */
+#footer::before,
+#footer::after,
+#footer *::before,
+#footer *::after,
+.footer::before,
+.footer::after,
+.footer *::before,
+.footer *::after {
+  display: none !important;
+  content: none !important;
+  background-image: none !important;
+}
+
+/* 푸터 내 아이콘 클래스들 숨기기 */
+#footer i,
+#footer .icon,
+#footer [class*="icon"],
+#footer [class*="bi-"],
+#footer .fa,
+#footer [class*="fa-"],
+.footer i,
+.footer .icon,
+.footer [class*="icon"],
+.footer [class*="bi-"],
+.footer .fa,
+.footer [class*="fa-"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* credits나 기타 링크 섹션 숨기기 */
+#footer .credits,
+.footer .credits {
+  display: none !important;
+}
+
+/* 푸터 배경 이미지 제거 */
+#footer,
+.footer {
+  background-image: none !important;
+}
+
+/* 푸터 하단의 추가적인 요소들 숨기기 */
+#footer .footer-links,
+#footer .social-links,
+.footer .footer-links,
+.footer .social-links {
+  display: none !important;
+}
+
+/* 특정 템플릿에서 추가되는 요소들 */
+#footer .template-info,
+#footer .designer-info,
+.footer .template-info,
+.footer .designer-info {
+  display: none !important;
+}
+
+/* 푸터 copyright 영역만 깔끔하게 */
+#footer .copyright,
+.footer .copyright {
+  text-align: center;
+  color: #012970;
+  font-size: 14px;
+  padding: 20px 0;
+  margin: 0;
+  border: none;
+}
+
+/* 푸터 전체 스타일 정리 */
+#footer,
+.footer {
+  background: #f6f9ff;
+  padding: 20px 0;
+  font-size: 14px;
+  border-top: 1px solid #cddfff;
+  text-align: center;
+}
+
+/* 개발 도구 및 성능 측정 요소들 제거 */
+/* DevTools, Performance Monitor, Debug Info 등 */
+.nuxt-devtools,
+.nuxt-devtools *,
+#nuxt-devtools,
+#nuxt-devtools *,
+[data-nuxt-devtools],
+[data-nuxt-devtools] *,
+.devtools-panel,
+.devtools-panel *,
+.performance-monitor,
+.performance-monitor *,
+.debug-info,
+.debug-info *,
+.dev-overlay,
+.dev-overlay *,
+.timing-info,
+.timing-info *,
+.ms-indicator,
+.ms-indicator *,
+[class*="devtools"],
+[class*="devtools"] *,
+[class*="debug"],
+[class*="debug"] *,
+[class*="timing"],
+[class*="timing"] *,
+[class*="performance"],
+[class*="performance"] *,
+[id*="devtools"],
+[id*="devtools"] *,
+[id*="debug"],
+[id*="debug"] *,
+[id*="timing"],
+[id*="timing"] *,
+[id*="performance"],
+[id*="performance"] * {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+/* 특정 개발 관련 요소들 */
+.vite-dev-overlay,
+.vite-dev-overlay *,
+.__nuxt-dev-overlay,
+.__nuxt-dev-overlay *,
+.nuxt-loading-indicator,
+.nuxt-loading-indicator *,
+.vue-devtools,
+.vue-devtools *,
+.__vue-devtools-global-hook,
+.__vue-devtools-global-hook * {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* 하단 고정 요소들 (개발 도구 등) */
+[style*="position: fixed"][style*="bottom"],
+[style*="position: fixed"][style*="right"],
+[style*="z-index: 999"],
+[style*="z-index: 9999"] {
+  display: none !important;
+}
+
+/* 추가적인 개발 관련 요소들 */
+.development-only,
+.dev-only,
+.debug-only,
+[data-dev],
+[data-debug],
+[data-development] {
+  display: none !important;
+}

@@ -1,0 +1,37 @@
+{
+    "question": {
+    },
+    "FRONT": {
+        "response":{
+            "data" : {
+
+            }
+        }
+    },
+    "Pig environment": {
+},
+"Feed management":{
+},
+"Pig behavior":{
+},
+"Disease management":{
+},
+"Outside weather":{
+},
+"Manure treatment":{
+},
+"Work":{
+},
+"Production index":{
+    "Psy":{
+    },
+    "MSY":{
+    }
+},
+"Finance":{
+},
+"Market":{
+},
+"Processing information":{
+    }
+}

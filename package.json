@@ -1,0 +1,43 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "build:server": "NUXT_TYPESCRIPT_TYPECHECK=false nuxt build",
+    "dev": "nuxt dev --host 0.0.0.0 --port 8205",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "node fix-oxc-parser.cjs && (nuxt prepare 2>&1 | grep -v 'oxc-parser' || true)",
+    "install:server": "npm install --no-optional --ignore-scripts && node fix-oxc-parser.cjs && npm run postinstall",
+    "start": "node .output/server/index.mjs",
+    "create-inverted-logo": "node scripts/create-inverted-logo.js",
+    "create-favicons": "node scripts/create-favicons.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "chart.js": "^4.5.0",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.14.3",
+    "neo4j-driver": "^5.28.1",
+    "nuxt": "^3.13.0",
+    "openai": "^5.16.0",
+    "sharp": "^0.33.5",
+    "ssh2": "^1.17.0",
+    "vue": "^3.5.17",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "vue-tsc": "^3.1.1"
+  },
+  "optionalDependencies": {
+    "oxc-parser": "*",
+    "@oxc-parser/binding-linux-x64-gnu": "*",
+    "@oxc-parser/binding-linux-x64-musl": "*",
+    "@oxc-parser/binding-linux-arm64-gnu": "*",
+    "@oxc-parser/binding-linux-arm64-musl": "*"
+  }
+}
