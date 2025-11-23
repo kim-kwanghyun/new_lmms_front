@@ -7,9 +7,7 @@
 const fs = require('fs')
 const path = require('path')
 
-// __dirname 정의 (ES 모듈 환경 대응)
-const __dirname = typeof __dirname !== 'undefined' ? __dirname : process.cwd()
-
+// CommonJS 모듈에서는 __dirname이 자동으로 제공됨
 const stubJsPath = path.join(__dirname, 'oxc-parser-stub.js')
 const stubMjsPath = path.join(__dirname, 'oxc-parser-stub.mjs')
 
@@ -18,25 +16,54 @@ const oxcParserDir = path.join(__dirname, 'node_modules', 'oxc-parser')
 
 if (fs.existsSync(oxcParserDir)) {
   try {
-    // 1. index.js를 stub으로 교체
+    // 1. index.js와 index.mjs를 stub으로 교체 (ES 모듈 형식)
     const indexPath = path.join(oxcParserDir, 'index.js')
-    if (fs.existsSync(stubJsPath)) {
-      fs.copyFileSync(stubJsPath, indexPath)
-      console.log('✓ oxc-parser/index.js replaced with stub')
-    }
-    
-    // 2. index.mjs도 stub으로 교체 (있는 경우)
     const indexMjsPath = path.join(oxcParserDir, 'index.mjs')
+    
     if (fs.existsSync(stubMjsPath)) {
+      // index.mjs 생성 (ES 모듈)
       fs.copyFileSync(stubMjsPath, indexMjsPath)
-      console.log('✓ oxc-parser/index.mjs replaced with stub')
+      console.log('✓ oxc-parser/index.mjs created with stub (ESM)')
+      
+      // index.js도 stub으로 교체 (fallback)
+      fs.copyFileSync(stubMjsPath, indexPath)
+      console.log('✓ oxc-parser/index.js replaced with stub (ESM)')
+      
+      // package.json 수정하여 ES 모듈로 인식
+      const pkgJsonPath = path.join(oxcParserDir, 'package.json')
+      if (fs.existsSync(pkgJsonPath)) {
+        try {
+          const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8'))
+          pkgJson.type = 'module'
+          if (!pkgJson.exports) {
+            pkgJson.exports = {}
+          }
+          pkgJson.exports['.'] = {
+            'import': './index.mjs',
+            'require': './index.js',
+            'default': './index.mjs'
+          }
+          fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2))
+          console.log('✓ oxc-parser/package.json updated for ES module support')
+        } catch (e) {
+          console.log('⚠ Could not update package.json:', e.message)
+        }
+      }
+    } else if (fs.existsSync(stubJsPath)) {
+      fs.copyFileSync(stubJsPath, indexPath)
+      console.log('✓ oxc-parser/index.js replaced with stub (CJS)')
     }
     
-    // 3. bindings.js를 stub으로 교체
+    // 3. bindings.js를 stub으로 교체 (ES 모듈 형식 우선)
     const bindingsPath = path.join(oxcParserDir, 'bindings.js')
-    if (fs.existsSync(bindingsPath) && fs.existsSync(stubJsPath)) {
-      fs.copyFileSync(stubJsPath, bindingsPath)
-      console.log('✓ oxc-parser/bindings.js replaced with stub')
+    if (fs.existsSync(bindingsPath)) {
+      if (fs.existsSync(stubMjsPath)) {
+        fs.copyFileSync(stubMjsPath, bindingsPath)
+        console.log('✓ oxc-parser/bindings.js replaced with stub (ESM)')
+      } else if (fs.existsSync(stubJsPath)) {
+        fs.copyFileSync(stubJsPath, bindingsPath)
+        console.log('✓ oxc-parser/bindings.js replaced with stub (CJS)')
+      }
     }
     
     // 4. @oxc-parser 바인딩 패키지들도 stub으로 교체
@@ -51,16 +78,41 @@ if (fs.existsSync(oxcParserDir)) {
       const pkgDir = path.join(__dirname, 'node_modules', pkg)
       if (fs.existsSync(pkgDir)) {
         const pkgIndex = path.join(pkgDir, 'index.js')
-        if (fs.existsSync(stubJsPath)) {
+        if (fs.existsSync(stubMjsPath)) {
+          // ES 모듈 형식의 stub 사용
+          fs.copyFileSync(stubMjsPath, pkgIndex)
+          console.log(`✓ ${pkg}/index.js replaced with stub (ESM)`)
+        } else if (fs.existsSync(stubJsPath)) {
           fs.copyFileSync(stubJsPath, pkgIndex)
-          console.log(`✓ ${pkg}/index.js replaced with stub`)
+          console.log(`✓ ${pkg}/index.js replaced with stub (CJS)`)
         }
         
-        // index.mjs도 교체 (있는 경우)
+        // index.mjs도 교체
         const pkgIndexMjs = path.join(pkgDir, 'index.mjs')
         if (fs.existsSync(stubMjsPath)) {
           fs.copyFileSync(stubMjsPath, pkgIndexMjs)
           console.log(`✓ ${pkg}/index.mjs replaced with stub`)
+        }
+        
+        // package.json도 수정
+        const pkgPkgJsonPath = path.join(pkgDir, 'package.json')
+        if (fs.existsSync(pkgPkgJsonPath)) {
+          try {
+            const pkgPkgJson = JSON.parse(fs.readFileSync(pkgPkgJsonPath, 'utf8'))
+            pkgPkgJson.type = 'module'
+            if (!pkgPkgJson.exports) {
+              pkgPkgJson.exports = {}
+            }
+            pkgPkgJson.exports['.'] = {
+              'import': './index.mjs',
+              'require': './index.js',
+              'default': './index.mjs'
+            }
+            fs.writeFileSync(pkgPkgJsonPath, JSON.stringify(pkgPkgJson, null, 2))
+            console.log(`✓ ${pkg}/package.json updated for ES module support`)
+          } catch (e) {
+            // 무시
+          }
         }
       }
     }
