@@ -25,7 +25,7 @@
     "mysql2": "^3.14.3",
     "neo4j-driver": "^5.28.1",
     "nuxt": "^3.13.0",
-    "openai": "^5.16.0",
+    "openai": "^5.23.2",
     "sharp": "^0.33.5",
     "ssh2": "^1.17.0",
     "vue": "^3.5.17",
@@ -35,10 +35,10 @@
     "vue-tsc": "^3.1.1"
   },
   "optionalDependencies": {
-    "oxc-parser": "*",
+    "@oxc-parser/binding-linux-arm64-gnu": "*",
+    "@oxc-parser/binding-linux-arm64-musl": "*",
     "@oxc-parser/binding-linux-x64-gnu": "*",
     "@oxc-parser/binding-linux-x64-musl": "*",
-    "@oxc-parser/binding-linux-arm64-gnu": "*",
-    "@oxc-parser/binding-linux-arm64-musl": "*"
+    "oxc-parser": "*"
   }
 }

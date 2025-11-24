@@ -322,7 +322,7 @@
     </div>
     
     <!-- Footer -->
-    <Footer />
+    <AdminFooter />
   </div>
 </template>
 

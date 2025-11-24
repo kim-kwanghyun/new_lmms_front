@@ -1,9 +1,45 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import { readFileSync, existsSync } from 'fs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
+
+// .env.dev 파일 로드 (개발 환경)
+const loadEnvFile = (filename: string) => {
+  const envPath = join(__dirname, filename)
+  if (existsSync(envPath)) {
+    const envContent = readFileSync(envPath, 'utf-8')
+    const envVars: Record<string, string> = {}
+    envContent.split('\n').forEach(line => {
+      const trimmedLine = line.trim()
+      if (trimmedLine && !trimmedLine.startsWith('#')) {
+        const [key, ...valueParts] = trimmedLine.split('=')
+        if (key && valueParts.length > 0) {
+          const value = valueParts.join('=').trim().replace(/^["']|["']$/g, '')
+          envVars[key.trim()] = value
+        }
+      }
+    })
+    // process.env에 병합 (기존 값이 있으면 덮어쓰지 않음)
+    Object.keys(envVars).forEach(key => {
+      if (!process.env[key]) {
+        process.env[key] = envVars[key]
+      }
+    })
+    console.log(`✅ ${filename} 파일 로드 완료`)
+  } else {
+    console.log(`⚠️ ${filename} 파일을 찾을 수 없습니다.`)
+  }
+}
+
+// 개발 환경에서 .env.dev 파일 로드
+if (process.env.NODE_ENV !== 'production') {
+  loadEnvFile('.env.dev')
+}
+// .env 파일도 로드 (기본)
+loadEnvFile('.env')
 
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
@@ -60,6 +96,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // 서버 사이드에서만 접근 가능한 설정
     apiSecret: '',
+    openaiApiKey: process.env.OPENAI_API_KEY || '',
     
     // 클라이언트와 서버 양쪽에서 접근 가능한 설정
     public: {

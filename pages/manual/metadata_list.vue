@@ -346,7 +346,7 @@
     </div>
     
     <!-- Footer -->
-    <Footer />
+    <AdminFooter />
     
     <!-- Add/Edit Modal -->
     <div 
